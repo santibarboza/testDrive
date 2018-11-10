@@ -1,121 +1,25 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!doctype html>
+<html>
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-    <title>Google Picker Example</title>
-
-    <script type="text/javascript">
-
-      // The Browser API key obtained from the Google API Console.
-      var developerKey = 'AIzaSyDTAhXBl5Oq-kBukLev1yXqtPSdO29FVrc';
-
-      // The Client ID obtained from the Google API Console. Replace with your own Client ID.
-      var clientId = '46513235650-lg4f6n4nfsfd93oiqtm722nid2klju80.apps.googleusercontent.com';
-
-      // Scope to use to access user's photos.
-      var scope = 'https://www.googleapis.com/auth/drive.readonly';
-
-      var pickerApiLoaded = false;
-      var oauthToken;
-
-      // Use the API Loader script to load google.picker and gapi.auth.
-      function onApiLoad() {
-        gapi.load('auth2', onAuthApiLoad);
-        gapi.load('picker', onPickerApiLoad);
-      }
-
-      function onAuthApiLoad() {
-        var authBtn = document.getElementById('auth');
-        authBtn.disabled = false;
-        authBtn.addEventListener('click', function() {
-          gapi.auth2.authorize({
-            client_id: clientId,
-            scope: scope
-          }, handleAuthResult);
-        });
-      }
-
-      function onPickerApiLoad() {
-        pickerApiLoaded = true;
-        createPicker();
-      }
-
-      function handleAuthResult(authResult) {
-        if (authResult && !authResult.error) {
-          oauthToken = authResult.access_token;
-          createPicker();
-        }
-      }
-
-      // Create and render a Picker object for picking user Photos.
-      function createPicker() {
-        if (pickerApiLoaded && oauthToken) {
-          var picker = new google.picker.PickerBuilder().
-              addView(google.picker.ViewId.DOCS).
-              setOAuthToken(oauthToken).
-              setDeveloperKey(developerKey).
-              setCallback(pickerCallback).
-              build();
-          picker.setVisible(true);
-        }
-      }
-
-      // A simple callback implementation.
-      function pickerCallback(data) {
-        var url = 'nothing';
-        if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-          var doc = data[google.picker.Response.DOCUMENTS][0];
-          url = doc[google.picker.Document.URL];
-        }
-        var message = 'You picked: ' + url;
-        document.getElementById('result').innerHTML = message;
-      }
-    </script>
+    <meta charset="utf-8">
+    <title>Uppy</title>
+    <link href="https://transloadit.edgly.net/releases/uppy/v0.28.0/dist/uppy.min.css" rel="stylesheet">
   </head>
   <body>
-    <button type="button" id="auth" disabled>Authenticate</button>
+    <div id="drag-drop-area"></div>
 
-    <div id="result"></div>
-    <button id="apiDriveAuthenticate" type="submit">Start Google Drive Authentication</button>
-    <div id="gDriveAuthorization"></div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="jquery.gdrive-1.2.0.min.js"></script>
+    <script src="https://transloadit.edgly.net/releases/uppy/v0.28.0/dist/uppy.min.js"></script>
+    <script>
+      var uppy = Uppy.Core()
+        .use(Uppy.Dashboard, {
+          inline: true,
+          target: '#drag-drop-area'
+        })
+        .use(Uppy.Tus, {endpoint: 'https://master.tus.io/files/'})
 
-    <!-- The Google API Loader script. -->
-    <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
-    <script type="text/javascript">
-      //gdrive options with authentication and authorization level requested
-        var gdrive_pluginOptions = {
-            authentication: {
-                clientID: "209560473815-yourkey.apps.googleusercontent.com",
-                keyAPI: "YOURAPIKEY"
-            },
-            scopes: ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/userinfo.email"]
-        }
-
-        //initialize gdrive
-        $(function () {
-            //initialize
-            $("#apiDriveAuthenticate").gDrive(gdrive_pluginOptions);
-            //listen to the event
-            $('body').bind('DrivePlugin_loaded',
-           function (e, data) {
-               
-              var auth = $.gDrive.authorized();
-              if (auth) {
-                  $("#apiDriveAuthenticate").hide();
-                  $("#gDriveAuthorization").css("color", "green");
-                  $("#gDriveAuthorization").text("Authorized");
-              }
-              else {
-                  $("#gDriveAuthorization").css("color", "orange");
-                  $("#gDriveAuthorization").text("Not Authorized");
-              }
-
-           });
-        });
-
+      uppy.on('complete', (result) => {
+        console.log(`Upload complete! We’ve uploaded these files: ${result.successful}`)
+      })
     </script>
   </body>
 </html>
